@@ -80,7 +80,17 @@ export XDG_DATA_HOME="$SCRATCH/xdg-data"
 export XDG_STATE_HOME="$SCRATCH/xdg-state"
 mkdir -p "$TMPDIR" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"
 
-# ── Launch ────────────────────────────────────────────────────────────
+# ── Pick per-host work subdir (session history scoped to the machine) ──
+# Different hosts → different cwds → claude indexes their session
+# histories separately. Matters most on USB flow where the same folder
+# plugs into multiple machines. Set CLAUDE_DROPIN_SHARED_WORK=1 to opt
+# back into a single shared work/ across hosts.
+if [[ -z "${CLAUDE_DROPIN_SHARED_WORK:-}" ]]; then
+  host_slug="$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo unknown-host)"
+  # Sanitize for path safety: keep alnum, dash, underscore, dot.
+  host_slug="$(printf '%s' "$host_slug" | tr -c 'A-Za-z0-9._-' '_')"
+  WORK_DIR="$WORK_DIR/$host_slug"
+fi
 mkdir -p "$WORK_DIR"
 cd "$WORK_DIR"
 

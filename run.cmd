@@ -133,6 +133,19 @@ rem Don't leak our override env vars into claude or anything it spawns.
 set "CLAUDE_DROPIN_PASSPHRASE="
 set "CLAUDE_DROPIN_API_KEY="
 
+rem -- Pick per-host work subdir (session history scoped to the machine).
+rem Same folder plugged into different machines -> different cwds ->
+rem claude indexes their session histories separately. Set
+rem CLAUDE_DROPIN_SHARED_WORK=1 to opt back into a single shared work\.
+if not defined CLAUDE_DROPIN_SHARED_WORK (
+  rem COMPUTERNAME is always set on Windows; sanitize anyway.
+  set "HOST_SLUG=%COMPUTERNAME%"
+  rem Replace anything not alnum/dot/dash/underscore with underscore.
+  rem cmd can't do regex; COMPUTERNAME is alnum+dash only per Windows rules,
+  rem so in practice no sanitization is needed. Guard for odd custom names.
+  set "WORK_DIR=%WORK_DIR%\!HOST_SLUG!"
+)
+
 rem -- Launch ------------------------------------------------------------
 if not exist "%WORK_DIR%" mkdir "%WORK_DIR%"
 pushd "%WORK_DIR%"

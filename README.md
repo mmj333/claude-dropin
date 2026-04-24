@@ -92,6 +92,14 @@ CLAUDE_DROPIN_PASSPHRASE="$(cat my-passphrase)" \
 The plugin binary (~4 MB) ships in every release ZIP so these overrides
 work post-deployment, not just during build.
 
+A third env var affects session indexing:
+
+- `CLAUDE_DROPIN_SHARED_WORK=1` — disables the default "per-hostname"
+  scratch cwd. By default `run.*` cd's into `work/<hostname>/` so that
+  the same folder on a USB stick plugged into different customer boxes
+  keeps session histories separate. Set this to `1` when you want a
+  single shared project index across every machine you plug into.
+
 ## Encryption scheme
 
 - `setup.*` generates an X25519 keypair via `age-keygen`.
