@@ -41,7 +41,7 @@ done
 
 # ── Linux tree ─────────────────────────────────────────────────────────
 echo "==> Staging Linux tree..."
-cp "$ROOT_DIR/run.sh" "$ROOT_DIR/setup.sh" "$ROOT_DIR/eject.sh" "$LINUX_STAGE/"
+cp "$ROOT_DIR/run.sh" "$ROOT_DIR/setup.sh" "$ROOT_DIR/eject.sh" "$ROOT_DIR/update.sh" "$LINUX_STAGE/"
 mkdir -p "$LINUX_STAGE/lib" "$LINUX_STAGE/templates/linux" "$LINUX_STAGE/vendor/linux-x64"
 cp "$ROOT_DIR/lib/common.sh" "$LINUX_STAGE/lib/common.sh"
 cp -R "$ROOT_DIR/templates/linux/." "$LINUX_STAGE/templates/linux/"
@@ -50,7 +50,7 @@ cp -L "$ROOT_DIR/vendor/linux-x64/"* "$LINUX_STAGE/vendor/linux-x64/"
 
 # ── Windows tree ───────────────────────────────────────────────────────
 echo "==> Staging Windows tree..."
-cp "$ROOT_DIR/run.cmd" "$ROOT_DIR/setup.cmd" "$ROOT_DIR/eject.cmd" "$WIN_STAGE/"
+cp "$ROOT_DIR/run.cmd" "$ROOT_DIR/setup.cmd" "$ROOT_DIR/eject.cmd" "$ROOT_DIR/update.cmd" "$WIN_STAGE/"
 mkdir -p "$WIN_STAGE/templates/windows/skills" "$WIN_STAGE/vendor/win32-x64" \
          "$WIN_STAGE/vendor/git-for-windows"
 cp -R "$ROOT_DIR/templates/windows/." "$WIN_STAGE/templates/windows/"

@@ -7,10 +7,34 @@ Nothing lands on the host.
 
 ## Field quick-ref
 
-| Host OS | Launcher | First-time setup |
-|---|---|---|
-| Windows 10/11 / Server 2016+ | double-click `run.cmd` | runs `setup.cmd` automatically if no config blob |
-| Linux (x86_64) | `./run.sh` | runs `setup.sh` automatically if no config blob |
+| Host OS | Launcher | First-time setup | In-place update |
+|---|---|---|---|
+| Windows 10/11 / Server 2016+ | double-click `run.cmd` | runs `setup.cmd` automatically if no config blob | `update.cmd` |
+| Linux (x86_64) | `./run.sh` | runs `setup.sh` automatically if no config blob | `./update.sh` |
+
+`update.*` pulls the latest scripts + templates from
+`github.com/mmj333/claude-dropin@main` and overlays them onto your
+tree — preserving `config/`, `work/`, and `vendor/`, so your encrypted
+state and bundled binaries survive. Bundled binaries are not refreshed
+by `update.*`; re-download the release ZIP (or re-run
+`scripts/build-<platform>.sh`) when Claude Code itself bumps versions.
+
+**Adding `update.*` to an existing v0.1 install** (one-time, before
+the first use of update):
+
+```bash
+# Linux
+curl -fsSL https://raw.githubusercontent.com/mmj333/claude-dropin/main/update.sh -o update.sh
+chmod +x update.sh
+```
+
+```cmd
+:: Windows (from cmd.exe in the extracted claude-dropin-v0.1 folder)
+curl -fsSL https://raw.githubusercontent.com/mmj333/claude-dropin/main/update.cmd -o update.cmd
+```
+
+After that, just run `./update.sh` / `update.cmd` whenever you want
+the latest scripts.
 
 First launch prompts for a passphrase + an Anthropic API key. Subsequent
 launches only prompt for the passphrase.
