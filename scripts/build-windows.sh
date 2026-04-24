@@ -18,16 +18,19 @@ AGE_WIN_URL="https://github.com/FiloSottile/age/releases/download/v${AGE_VERSION
 AGE_WIN_SHA256="c56e8ce22f7e80cb85ad946cc82d198767b056366201d3e1a2b93d865be38154"
 
 GIT_VERSION="2.54.0"
-# MinGit — minimal Git for Windows (~40 MB zip / ~97 MB unpacked). Swap to the
-# full PortableGit-${GIT_VERSION}-64-bit.7z.exe if any git operation ever needs
-# the bash / mingw Unix-tool environment.
-GIT_WIN_URL="https://github.com/git-for-windows/git/releases/download/v${GIT_VERSION}.windows.1/MinGit-${GIT_VERSION}-64-bit.zip"
-GIT_WIN_SHA256="04f937e1f0918b17b9be6f2294cb2bb66e96e1d9832d1c298e2de088a1d0e668"
+# PortableGit — full Git for Windows self-extracting 7z (~57 MB / ~414 MB
+# unpacked). Required because Claude Code on Windows shells out to bash.exe,
+# and MinGit does not include bash.exe. Do NOT swap to MinGit — it'll look
+# like it works on any host that already has git-for-windows installed
+# (bash.exe gets found via PATH) and fail only on clean customer boxes.
+GIT_WIN_URL="https://github.com/git-for-windows/git/releases/download/v${GIT_VERSION}.windows.1/PortableGit-${GIT_VERSION}-64-bit.7z.exe"
+GIT_WIN_SHA256="bea006a6cc69673f27b1647e84ab3a68e912fbc175ab6320c5987e012897f311"
 
 # ── Preflight ──────────────────────────────────────────────────────────
-for t in curl unzip sha256sum; do
+for t in curl unzip sha256sum 7z; do
   command -v "$t" >/dev/null || {
     echo "ERROR: missing required tool: $t" >&2
+    [[ "$t" == "7z" ]] && echo "  Install with: sudo apt install p7zip-full" >&2
     exit 1
   }
 done
@@ -71,22 +74,24 @@ for bin in age age-keygen age-plugin-batchpass; do
 done
 rm -rf "$tmp_age"
 
-# ── MinGit (bundled Git for Windows, minimal flavor) ───────────────────
-git_zip="$CACHE_DIR/MinGit-${GIT_VERSION}-64-bit.zip"
-if [[ ! -f "$git_zip" ]] || ! assert_file_sha256 "$git_zip" "$GIT_WIN_SHA256" 2>/dev/null; then
-  echo "==> Downloading MinGit ${GIT_VERSION} (~40 MB)..."
-  download_and_verify "$GIT_WIN_URL" "$git_zip" "$GIT_WIN_SHA256"
+# ── PortableGit (full Git for Windows with bash.exe) ───────────────────
+git_exe="$CACHE_DIR/PortableGit-${GIT_VERSION}.7z.exe"
+if [[ ! -f "$git_exe" ]] || ! assert_file_sha256 "$git_exe" "$GIT_WIN_SHA256" 2>/dev/null; then
+  echo "==> Downloading PortableGit ${GIT_VERSION} (~57 MB)..."
+  download_and_verify "$GIT_WIN_URL" "$git_exe" "$GIT_WIN_SHA256"
 else
-  echo "==> MinGit cached + verified."
+  echo "==> PortableGit cached + verified."
 fi
-if [[ -d "$GIT_DIR" ]] && [[ -x "$GIT_DIR/cmd/git.exe" ]]; then
-  echo "==> MinGit already extracted at $GIT_DIR, skipping."
+if [[ -d "$GIT_DIR" ]] && [[ -f "$GIT_DIR/usr/bin/bash.exe" ]]; then
+  echo "==> PortableGit already extracted at $GIT_DIR, skipping."
 else
-  echo "==> Extracting MinGit (~370 files, ~97 MB uncompressed)..."
+  echo "==> Extracting PortableGit (~9500 files, ~414 MB uncompressed)..."
   rm -rf "$GIT_DIR"
   mkdir -p "$GIT_DIR"
-  unzip -q -o "$git_zip" -d "$GIT_DIR"
+  7z x -y -o"$GIT_DIR" "$git_exe" >/dev/null
 fi
+[[ -f "$GIT_DIR/usr/bin/bash.exe" ]] \
+  || { echo "ERROR: $GIT_DIR/usr/bin/bash.exe missing after extract" >&2; exit 1; }
 
 # ── Smoke test (structural — we can't run PE binaries from Linux) ──────
 echo "==> Structural verification..."

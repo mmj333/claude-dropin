@@ -53,7 +53,7 @@ claude-dropin/
   vendor/
     linux-x64/          Claude Code binary + age tools (linux x64)
     win32-x64/          Claude Code binary + age tools (windows x64)
-    git-for-windows/    bundled MinGit (win32 only)
+    git-for-windows/    bundled PortableGit (win32 only, for bash.exe)
   config/
     claude.age          encrypted tarball of the full Claude Code config tree
     identity.age        X25519 identity wrapped with your passphrase
@@ -164,10 +164,11 @@ criterion for treating `v0.1-win32-x64` as field-ready.
 - **Crash loses active session** — if the process dies hard (power cut, OOM),
   any session writes since the last clean exit are lost. Periodic
   auto-encrypt is a v1.1 item.
-- **Git fallback** — we bundle MinGit (~40 MB zip) rather than the full
-  PortableGit (~57 MB zip / 414 MB unpacked). If any git-related command
-  inside Claude Code fails on Windows with a "not found" error referring
-  to `sh.exe`, `awk`, or other mingw Unix utilities, swap the `GIT_WIN_URL`
-  + `GIT_WIN_SHA256` constants in `scripts/build-windows.sh` to the
-  `PortableGit-<version>-64-bit.7z.exe` release asset (requires `p7zip-full`
-  on the Linux build host for extraction) and rebuild.
+- **Windows bash.exe requirement** — Claude Code on Windows shells out
+  to `bash.exe` (the Git-for-Windows msys2 bash). We bundle PortableGit
+  (full ~414 MB unpacked; ~57 MB in the ZIP) specifically to ship this
+  bash. `run.cmd` sets `CLAUDE_CODE_GIT_BASH_PATH` explicitly to our
+  bundled `bash.exe` so the host's PATH doesn't matter. An earlier
+  pre-release used MinGit to save disk — DON'T — MinGit has no
+  `bash.exe` and Claude Code fails on any clean Windows box where
+  Git-for-Windows isn't already installed system-wide.

@@ -126,8 +126,16 @@ if not exist "%APPDATA%"         mkdir "%APPDATA%"
 if not exist "%LOCALAPPDATA%"    mkdir "%LOCALAPPDATA%"
 if not exist "%XDG_CONFIG_HOME%" mkdir "%XDG_CONFIG_HOME%"
 
-rem Prepend bundled Git (MinGit) to PATH if present.
-if exist "%GIT_DIR%\cmd\git.exe" set "PATH=%GIT_DIR%\cmd;%GIT_DIR%\mingw64\bin;%PATH%"
+rem Prepend bundled Git-for-Windows to PATH + point Claude Code at our bash.
+rem Claude Code shells out to bash.exe for some operations and REQUIRES the
+rem Git-for-Windows msys2 bash (see https://github.com/anthropics/claude-code
+rem issue #... "bash required on Windows"). Setting CLAUDE_CODE_GIT_BASH_PATH
+rem is belt-and-suspenders: if PATH-based discovery ever fails or finds a
+rem wrong bash first (WSL, Cygwin, etc.), this env var wins.
+if exist "%GIT_DIR%\cmd\git.exe" (
+  set "PATH=%GIT_DIR%\cmd;%GIT_DIR%\usr\bin;%GIT_DIR%\mingw64\bin;%PATH%"
+  if exist "%GIT_DIR%\usr\bin\bash.exe" set "CLAUDE_CODE_GIT_BASH_PATH=%GIT_DIR%\usr\bin\bash.exe"
+)
 
 rem Don't leak our override env vars into claude or anything it spawns.
 set "CLAUDE_DROPIN_PASSPHRASE="

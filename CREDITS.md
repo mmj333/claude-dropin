@@ -28,6 +28,8 @@ built from scratch.
   (see `vendor/<platform>/LICENSE.md` after build).
 - [`age`](https://github.com/FiloSottile/age) — Filippo Valsorda, BSD-3-Clause.
   Fetched from GitHub Releases.
-- [`MinGit`](https://git-scm.com/download/win) (Windows builds only) —
-  minimal Git for Windows (same release line as PortableGit, trimmed for
-  embedding), GPLv2. Fetched from git-for-windows GitHub releases.
+- [`PortableGit`](https://git-scm.com/download/win) (Windows builds only) —
+  full Git for Windows portable distribution including `bash.exe` (msys2),
+  GPLv2. Fetched from git-for-windows GitHub releases. Required in full
+  form because Claude Code on Windows shells out to `bash.exe`; the MinGit
+  flavor doesn't ship one.
