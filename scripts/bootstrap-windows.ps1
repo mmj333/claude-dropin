@@ -55,8 +55,38 @@ $zipPath = Join-Path $DestDir $asset
 Write-Host "==> Downloading $asset"
 Write-Host "    from: $url"
 Write-Host "    to:   $zipPath"
+# Invoke-WebRequest's default progress bar on PS 5.1 pegs the download at
+# single-digit MB/s on any size file — the progress redraw is the bottleneck.
+# HttpClient with a buffered stream download is 10-20x faster in practice.
 try {
-  Invoke-WebRequest -Uri $url -OutFile $zipPath -UseBasicParsing
+  Add-Type -AssemblyName System.Net.Http
+  $client = [System.Net.Http.HttpClient]::new()
+  $client.Timeout = [TimeSpan]::FromMinutes(10)
+  $response = $client.GetAsync($url, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+  if (-not $response.IsSuccessStatusCode) {
+    throw "HTTP $([int]$response.StatusCode) $($response.ReasonPhrase)"
+  }
+  $total = $response.Content.Headers.ContentLength
+  $in    = $response.Content.ReadAsStreamAsync().Result
+  $out   = [System.IO.File]::Create($zipPath)
+  try {
+    $buf = New-Object byte[] 131072
+    $read = 0
+    $t0 = Get-Date
+    while (($n = $in.Read($buf, 0, $buf.Length)) -gt 0) {
+      $out.Write($buf, 0, $n)
+      $read += $n
+      if ($total -gt 0 -and ((Get-Date) - $t0).TotalMilliseconds -gt 250) {
+        $pct = [int](100 * $read / $total)
+        Write-Host -NoNewline "`r    $pct%  ($([int]($read/1MB))/$([int]($total/1MB)) MB)"
+        $t0 = Get-Date
+      }
+    }
+    Write-Host "`r    100% ($([int]($read/1MB)) MB)               "
+  } finally {
+    $out.Close()
+    $in.Close()
+  }
 } catch {
   Write-Host ""
   Write-Host "ERROR: download failed. Check:" -ForegroundColor Red
