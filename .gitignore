@@ -37,3 +37,7 @@ Thumbs.db
 
 # Developer-session project-local Claude Code state
 .claude/
+
+# Written by update.sh / update.cmd on each update — reflects the user's
+# current commit, not something we commit.
+VERSION

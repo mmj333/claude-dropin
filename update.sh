@@ -44,6 +44,10 @@ if ! curl -fsSL "$TARBALL" -o "$tmp/src.tar.gz"; then
 fi
 
 mkdir -p "$tmp/extract"
+# Capture the commit SHA from the tarball's top-level dir name before we
+# strip it. The top-level is literally "claude-dropin-<full-40-char-sha>/".
+inner="$(tar -tzf "$tmp/src.tar.gz" | head -1 | cut -d/ -f1)"
+git_sha="${inner#claude-dropin-}"
 tar -xzf "$tmp/src.tar.gz" -C "$tmp/extract" --strip-components=1
 
 echo "==> Overlaying updates onto $SCRIPT_DIR..."
@@ -75,11 +79,15 @@ fi
 chmod +x "$SCRIPT_DIR"/*.sh 2>/dev/null || true
 chmod +x "$SCRIPT_DIR/scripts"/*.sh 2>/dev/null || true
 
+# Write a VERSION marker so "am I on latest?" has a clear answer.
+if [[ -n "$git_sha" ]]; then
+  printf '%s @ %s\n' "$BRANCH" "$git_sha" > "$SCRIPT_DIR/VERSION"
+fi
+
 echo
 echo "==> Update complete."
-if [[ -f "$SCRIPT_DIR/README.md" ]]; then
-  # Show the top of README so user sees what version they're on.
-  head -3 "$SCRIPT_DIR/README.md" | sed 's/^/    /'
+if [[ -n "$git_sha" ]]; then
+  echo "    Now at: $BRANCH @ ${git_sha:0:7}"
 fi
 echo
 echo "Bundled binaries in vendor/ were not touched."

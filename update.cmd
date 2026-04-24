@@ -52,6 +52,13 @@ if errorlevel 1 (
   exit /b 1
 )
 
+rem Capture the commit SHA from the inner dir name before --strip-components=1.
+rem The tarball's top-level entry is "claude-dropin-<full-sha>/".
+set "INNER="
+for /f "usebackq tokens=*" %%i in (`tar -tzf "%TARBALL%" ^| findstr /v /c:"/"`) do if not defined INNER set "INNER=%%i"
+set "GIT_SHA=%INNER:claude-dropin-=%"
+set "GIT_SHA=%GIT_SHA:/=%"
+
 tar -xzf "%TARBALL%" -C "%EXTRACT%" --strip-components=1
 if errorlevel 1 (
   echo ERROR: tar extract failed.
@@ -78,16 +85,14 @@ if %RC% GEQ 8 (
 
 rmdir /s /q "%TMPROOT%" 2>nul
 
+rem Write a VERSION marker so "am I on latest?" has a clear answer.
+if defined GIT_SHA (
+  ^> "%SCRIPT_DIR%\VERSION" echo %BRANCH% @ %GIT_SHA%
+)
+
 echo.
 echo ==^> Update complete.
-if exist "%SCRIPT_DIR%\README.md" (
-  echo.
-  for /f "usebackq tokens=* delims=" %%l in ("%SCRIPT_DIR%\README.md") do (
-    echo     %%l
-    goto :head_done
-  )
-  :head_done
-)
+if defined GIT_SHA echo     Now at: %BRANCH% @ %GIT_SHA:~0,7%
 echo.
 echo Bundled binaries in vendor\ were not touched.
 echo If you need fresher claude.exe / age / MinGit, re-download the
