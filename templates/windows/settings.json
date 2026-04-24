@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ipconfig:*)",
+      "Bash(driverquery:*)",
+      "Bash(systeminfo:*)",
+      "Bash(tasklist:*)",
+      "Bash(ping:*)",
+      "Bash(tracert:*)",
+      "Bash(where:*)",
+      "Bash(whoami:*)",
+      "Bash(netstat:*)",
+      "Bash(Get-ComputerInfo*)",
+      "Bash(Get-WinEvent*)",
+      "Bash(Get-EventLog*)",
+      "Bash(Get-HotFix*)",
+      "Bash(Get-Process*)",
+      "Bash(Get-Service*)",
+      "Bash(Get-PnpDevice*)",
+      "Bash(Get-NetAdapter*)",
+      "Bash(Get-NetIPAddress*)",
+      "Bash(Get-MpComputerStatus*)",
+      "Bash(pnputil /enum-drivers)"
+    ],
+    "deny": []
+  },
+  "env": {}
+}

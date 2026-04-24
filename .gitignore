@@ -1,0 +1,39 @@
+# Vendored binaries — fetched by scripts/build-{linux,windows}.sh, not committed
+vendor/linux-x64/claude
+vendor/linux-x64/age
+vendor/linux-x64/age-keygen
+vendor/linux-x64/age-plugin-batchpass
+vendor/linux-x64/LICENSE.md
+vendor/win32-x64/claude.exe
+vendor/win32-x64/age.exe
+vendor/win32-x64/age-keygen.exe
+vendor/win32-x64/age-plugin-batchpass.exe
+vendor/win32-x64/LICENSE.md
+vendor/git-for-windows/
+
+# Encrypted config blob — per-user, never committed (would churn on every eject anyway)
+config/claude.age
+config/identity.age
+config/recipient.pub
+
+# Transient scratch — decrypted state at runtime
+config/scratch/
+
+# Project-local .claude/ that Claude Code drops in its cwd
+work/*
+!work/.gitkeep
+
+# Build cache (downloaded tarballs, for idempotency)
+.build-cache/
+
+# Build output
+dist/
+*.zip
+
+# Editor/OS cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Developer-session project-local Claude Code state
+.claude/
