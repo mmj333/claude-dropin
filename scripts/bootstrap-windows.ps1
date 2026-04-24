@@ -97,8 +97,27 @@ try {
 }
 
 Write-Host "==> Extracting to $DestDir"
-# Expand-Archive won't overwrite by default; -Force handles repeat runs.
-Expand-Archive -Path $zipPath -DestinationPath $DestDir -Force
+# tar.exe (bsdtar / libarchive) ships with Windows 10 build 17063+ and
+# Server 2019+. It handles ZIPs and is typically 2-3x faster than
+# Expand-Archive on archives with many small files (MinGit has ~370).
+# Fall back to Expand-Archive on older boxes (pre-1809, Server 2016).
+$extractStart = [Diagnostics.Stopwatch]::StartNew()
+$tarExe = Get-Command tar.exe -ErrorAction SilentlyContinue
+if ($tarExe) {
+  & $tarExe.Path -xf $zipPath -C $DestDir
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "    tar.exe returned $LASTEXITCODE; falling back to Expand-Archive..."
+    Expand-Archive -Path $zipPath -DestinationPath $DestDir -Force
+    $extractor = 'Expand-Archive (fallback)'
+  } else {
+    $extractor = 'tar.exe'
+  }
+} else {
+  Expand-Archive -Path $zipPath -DestinationPath $DestDir -Force
+  $extractor = 'Expand-Archive'
+}
+$extractStart.Stop()
+Write-Host ("    extracted via {0} in {1:N1}s" -f $extractor, $extractStart.Elapsed.TotalSeconds)
 Remove-Item $zipPath
 
 $folder = Get-ChildItem -Path $DestDir -Directory -Filter 'claude-dropin-v*' `
