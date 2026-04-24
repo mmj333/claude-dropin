@@ -38,13 +38,26 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repo = 'mmj333/claude-dropin'
-$asset = 'claude-dropin-v0.1-win32-x64.zip'
 
+# Ask the GitHub API which asset the target release actually has.
+# Resilient to future version bumps — assets are matched by pattern.
 if ($Version -eq 'latest') {
-  $url = "https://github.com/$repo/releases/latest/download/$asset"
+  $api = "https://api.github.com/repos/$repo/releases/latest"
 } else {
-  $url = "https://github.com/$repo/releases/download/$Version/$asset"
+  $api = "https://api.github.com/repos/$repo/releases/tags/$Version"
 }
+try {
+  $release = Invoke-RestMethod -Uri $api -Headers @{ 'User-Agent' = 'claude-dropin-bootstrap' }
+} catch {
+  Write-Host "ERROR: couldn't query $api" -ForegroundColor Red
+  throw
+}
+$assetObj = $release.assets | Where-Object { $_.name -match 'win32-x64\.zip$' } | Select-Object -First 1
+if (-not $assetObj) {
+  throw "No win32-x64 asset found in release '$Version'. Available: $(($release.assets | ForEach-Object { $_.name }) -join ', ')"
+}
+$asset = $assetObj.name
+$url = $assetObj.browser_download_url
 
 if (-not (Test-Path $DestDir)) {
   New-Item -ItemType Directory -Path $DestDir | Out-Null
